@@ -11,7 +11,15 @@ import {
   type Activity,
 } from "eve/events";
 import { useEveAgent } from "eve/react";
-import { AlertCircleIcon, BrainIcon, PlusIcon, SquareIcon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  BrainIcon,
+  FileTextIcon,
+  PaperclipIcon,
+  PlusIcon,
+  SquareIcon,
+  XIcon,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import {
   Conversation,
@@ -34,7 +42,7 @@ import { cn } from "@/lib/utils";
 import { AgentMessage } from "./agent-message";
 import { WEB_CHAT_AGENT } from "@/app/eve-agent";
 
-const DEFAULT_AGENT_NAME = "eve-data-analyst";
+const DEFAULT_AGENT_NAME = "eve データアナリスト";
 const AGENT_NAME = WEB_CHAT_AGENT ?? DEFAULT_AGENT_NAME;
 
 export function AgentChat({
@@ -152,12 +160,15 @@ export function AgentChat({
   };
 
   const composer = (
-    <PromptInput onSubmit={handleSubmit}>
+    <PromptInput accept={CSV_TYPES} maxFileSize={MAX_UPLOAD_BYTES} onSubmit={handleSubmit}>
+      <AttachedFiles />
       <PromptInputTextarea
         disabled={isResuming}
         onChange={(event) => setHasInputText(event.currentTarget.value.trim().length > 0)}
-        placeholder="Send a message…"
+        className="pb-12"
+        placeholder="CSV を添付して、知りたいことを聞いてください…"
       />
+      <AttachButton disabled={isResuming} />
       <ComposerAction
         hasInputText={hasInputText}
         canCancel={turnOpen}
@@ -225,11 +236,86 @@ export function AgentChat({
         {showConversationLayout ? null : (
           <div className="flex flex-col items-center gap-3 text-center">
             <h1 className="font-medium text-5xl tracking-tighter">{AGENT_NAME}</h1>
+            <p className="text-muted-foreground text-sm">
+              CSV をサンドボックスで分析してグラフにします。チームへの送信はあなたの承認後にだけ実行され、
+              ブラウザを閉じても続きから再開できます。
+            </p>
           </div>
         )}
         <div className="w-full">{composer}</div>
+        {showConversationLayout ? null : (
+          <div className="flex flex-wrap justify-center gap-2">
+            {SUGGESTIONS.map((suggestion) => (
+              <Button
+                className="font-normal"
+                disabled={isResuming}
+                key={suggestion}
+                onClick={() => void handleSubmit({ files: [], text: suggestion })}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                {suggestion}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
     </main>
+  );
+}
+
+const CSV_TYPES = "text/csv,text/plain,application/vnd.ms-excel";
+// Inline files travel base64-encoded, and Vercel Functions cap request bodies at 4.5 MB.
+const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
+
+const SUGGESTIONS = [
+  "サンプルの売上データで月別の売上推移をグラフにして",
+  "サンプルデータでカテゴリ別・地域別の売上を比較して",
+];
+
+function AttachButton({ disabled }: { readonly disabled: boolean }) {
+  return (
+    <PromptInputButton
+      aria-label="CSV を添付"
+      className="absolute bottom-2.5 left-2.5"
+      disabled={disabled}
+      onClick={(event) => {
+        // PromptInput renders its hidden file input just before the form.
+        const form = event.currentTarget.closest("form");
+        const input = form?.previousElementSibling;
+        if (input instanceof HTMLInputElement) input.click();
+      }}
+      variant="ghost"
+    >
+      <PaperclipIcon className="size-4" />
+    </PromptInputButton>
+  );
+}
+
+function AttachedFiles() {
+  const attachments = usePromptInputAttachments();
+  if (attachments.files.length === 0) return null;
+  return (
+    <div className="flex w-full flex-wrap gap-2 px-3 pt-3" data-align="block-start">
+      {attachments.files.map((file) => (
+        <span
+          className="flex items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs"
+          key={file.id}
+        >
+          <FileTextIcon className="size-3.5 text-muted-foreground" />
+          <span className="max-w-48 truncate">{file.filename}</span>
+          <button
+            aria-label={`${file.filename} を外す`}
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => attachments.remove(file.id)}
+            type="button"
+          >
+            <XIcon className="size-3.5" />
+          </button>
+        </span>
+      ))}
+    </div>
   );
 }
 

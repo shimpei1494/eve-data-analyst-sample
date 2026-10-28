@@ -10,5 +10,23 @@ export function proxy(request: NextRequest) {
     target.host = routerHost;
     return NextResponse.redirect(target);
   }
+
+  // Shared-password gate for the public demo. The browser then sends the same Basic
+  // credentials to /eve/v1/*, where agent/channels/eve.ts checks them again.
+  const password = process.env.DEMO_PASSWORD;
+  if (password && !hasDemoPassword(request.headers.get("authorization"), password)) {
+    return new NextResponse("Authentication required", {
+      status: 401,
+      headers: { "WWW-Authenticate": 'Basic realm="eve-data-analyst", charset="UTF-8"' },
+    });
+  }
   return NextResponse.next();
+}
+
+function hasDemoPassword(header: string | null, password: string): boolean {
+  if (!header?.startsWith("Basic ")) return false;
+  const decoded = new TextDecoder().decode(
+    Uint8Array.from(atob(header.slice(6)), (char) => char.charCodeAt(0)),
+  );
+  return decoded === `demo:${password}`;
 }

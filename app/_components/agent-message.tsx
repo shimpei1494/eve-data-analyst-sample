@@ -19,6 +19,7 @@ import {
   FileIcon,
   ImageIcon,
   KeyRoundIcon,
+  SendIcon,
   TerminalIcon,
   WrenchIcon,
   XCircleIcon,
@@ -106,8 +107,52 @@ function blocksOf(parts: readonly EveMessagePart[], asks: Asks): (EveMessagePart
     if (!isStep) blocks.push(part);
     else if (Array.isArray(last)) last.push(part as Step);
     else blocks.push([part as Step]);
+    // Charts and sent reports also show in the conversation itself, not only inside the trace.
+    if (part.type === "tool" && SHOWCASE_TOOLS.has(part.name) && part.output !== undefined) {
+      blocks.push(part, []);
+    }
   }
-  return blocks;
+  return blocks.filter((block) => !Array.isArray(block) || block.length > 0);
+}
+
+const SHOWCASE_TOOLS = new Set(["show_chart", "send_report"]);
+
+function ShowcasePart({ part }: { readonly part: EveToolPart }) {
+  const output = part.output as Record<string, unknown> | undefined;
+  if (part.name === "show_chart" && typeof output?.pngBase64 === "string") {
+    const caption = typeof output.caption === "string" ? output.caption : undefined;
+    return (
+      <figure className="space-y-2">
+        <img
+          alt={caption ?? "Chart"}
+          className="w-full rounded-lg border bg-white"
+          src={`data:image/png;base64,${output.pngBase64}`}
+        />
+        {caption ? (
+          <figcaption className="text-center text-muted-foreground text-sm">{caption}</figcaption>
+        ) : null}
+      </figure>
+    );
+  }
+  if (part.name === "send_report" && output !== undefined) {
+    const delivered = output.delivered === true;
+    return (
+      <div className="flex items-start gap-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm">
+        <SendIcon className="mt-0.5 size-4 shrink-0 text-emerald-700 dark:text-emerald-300" />
+        <div className="min-w-0 space-y-1">
+          <p className="font-medium">
+            {delivered
+              ? "レポートを送信しました"
+              : "承認されました(デモモード: 送信先が未設定のため実際には送信していません)"}
+          </p>
+          {typeof output.title === "string" ? (
+            <p className="text-muted-foreground">{output.title}</p>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+  return null;
 }
 
 function AgentMessagePart({ asks, part }: { readonly asks: Asks; readonly part: EveMessagePart }) {
@@ -123,6 +168,9 @@ function AgentMessagePart({ asks, part }: { readonly asks: Asks; readonly part: 
     case "interaction":
       return <InteractionPrompt asks={asks} part={part} />;
     case "tool":
+      if (SHOWCASE_TOOLS.has(part.name) && part.output !== undefined) {
+        return <ShowcasePart part={part} />;
+      }
       return (
         <div className="space-y-4">
           {asks.questionsFor(part.callId).map((question) => {
