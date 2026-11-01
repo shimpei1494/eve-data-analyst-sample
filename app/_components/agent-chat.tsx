@@ -13,6 +13,7 @@ import {
 import { useEveAgent } from "eve/react";
 import {
   AlertCircleIcon,
+  BookOpenIcon,
   BrainIcon,
   FileTextIcon,
   PaperclipIcon,
@@ -240,6 +241,13 @@ export function AgentChat({
               CSV をサンドボックスで分析してグラフにします。チームへの送信はあなたの承認後にだけ実行され、
               ブラウザを閉じても続きから再開できます。
             </p>
+            <a
+              className="inline-flex items-center gap-1 text-primary text-sm underline-offset-4 hover:underline"
+              href="/learn"
+            >
+              <BookOpenIcon className="size-4" />
+              eve とこのアプリのしくみを読む
+            </a>
           </div>
         )}
         <div className="w-full">{composer}</div>
@@ -372,6 +380,15 @@ function ChatHeader({ canStartNewChat }: { readonly canStartNewChat: boolean }) 
   return (
     <header className="pointer-events-none fixed top-0 right-0 left-0 z-20 h-14">
       <div className="relative mx-auto flex h-full w-full max-w-3xl items-center justify-center bg-background px-24">
+        <a
+          className="pointer-events-auto fixed top-4 left-6 inline-flex items-center gap-1 text-muted-foreground text-sm hover:text-foreground"
+          href="/learn"
+          rel="noopener"
+          target="_blank"
+        >
+          <BookOpenIcon className="size-4" />
+          <span className="hidden sm:inline">しくみ</span>
+        </a>
         <span className="truncate text-muted-foreground text-sm">{AGENT_NAME}</span>
         {canStartNewChat ? (
           <Button
