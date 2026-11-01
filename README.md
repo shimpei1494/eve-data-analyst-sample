@@ -47,7 +47,12 @@ Docker が無いとサンドボックスは just-bash(Python なし)になり、
 2. Vercel のプロジェクト設定で環境変数を追加する
    - `DEMO_PASSWORD`: デモ用パスワード(ユーザー名は `demo`)。未設定だと本番のチャットは 401 で拒否されます
    - `REPORT_WEBHOOK_URL`(任意): Slack / Discord の Incoming Webhook URL。未設定ならデモモードで、承認後も実際には送信しません
-3. モデルは AI Gateway 経由なので、Vercel 上では API キー不要です(利用料は AI Gateway 側で発生します)
+   - `EVE_MODEL`(任意): 使うモデル。未設定なら AI Gateway の無料枠で使える `nvidia/nemotron-3.5-lightning-free`
+3. モデルは AI Gateway 経由なので、Vercel 上では API キー不要です
+
+### モデルについて
+
+AI Gateway の無料枠では一部のモデルしか使えません(一覧は https://vercel.com/ai-gateway/models?freeTier=true )。対象外のモデルを指定すると「Free tier users do not have access to this model」になります。既定の `nvidia/nemotron-3.5-lightning-free` は無料でツール呼び出しにも対応していますが、提供元がプロンプトをモデル改善に使う場合があるため、機密データは添付しないでください。AI Gateway のクレジットを購入すれば、`EVE_MODEL` に `openai/gpt-6-luna-fast` や `anthropic/claude-opus-5.5` などを指定して再デプロイするだけで切り替えられます。
 
 Hobby の無料枠(2026 年 10 月時点): Sandbox は月 5 CPU 時間・1 セッション最大 45 分、Workflow イベントは月 50,000。超過すると課金ではなく 30 日停止です。Hobby は非商用利用のみです。
 
