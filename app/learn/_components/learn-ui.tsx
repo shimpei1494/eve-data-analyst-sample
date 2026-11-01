@@ -9,6 +9,7 @@ export const LEARN_PAGES = [
   { href: "/learn/turn", title: "1 ターンの流れ", summary: "質問から承認・再開まで" },
   { href: "/learn/streaming", title: "ストリーミング UI", summary: "文字が少しずつ出て、再読み込みしても続く理由" },
   { href: "/learn/vercel", title: "Vercel の機能", summary: "どの機能が何を楽にしているか" },
+  { href: "/learn/aws", title: "AWS で動かすなら", summary: "Vercel の部品を AWS のどのサービスで置き換えるか" },
 ] as const;
 
 export function PageHeader({
