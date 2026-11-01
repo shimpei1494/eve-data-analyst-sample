@@ -21,6 +21,10 @@ app/                       Next.js のチャット画面(eve の Web Chat を日
 proxy.ts                   DEMO_PASSWORD によるサイト全体のパスワード保護
 ```
 
+## デモ用 CSV
+
+`demo-data/` に 3 パターンのデモ CSV と質問例があります。詳しくは [demo-data/README.md](demo-data/README.md) を参照してください。
+
 ## ローカルで動かす
 
 必要なもの: Node.js 24 以上、Docker(サンドボックスで Python を動かすため)、モデルの認証情報。
